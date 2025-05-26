@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.database.service.AdminService;
+import com.example.database.service.AuthService;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,9 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
+    
+    @Autowired
+    private AuthService authService;
 
     @PostMapping("/addCourse")
     public ResponseEntity<String> addCourse(@RequestParam String courseId, @RequestParam String courseName, @RequestParam int offeringDepartmentId, @RequestParam double credits) {
@@ -32,5 +36,10 @@ public class AdminController {
     @GetMapping("/grades")
     public ResponseEntity<List<Map<String, Object>>> getAllGrades() {
         return adminService.getAllGrades();
+    }
+    
+    @GetMapping("/loginRecords")
+    public ResponseEntity<Map<String, Object>> getLoginRecords() {
+        return authService.getLoginRecords();
     }
 } 

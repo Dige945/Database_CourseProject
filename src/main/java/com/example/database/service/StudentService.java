@@ -36,29 +36,49 @@ public class StudentService {
         String sql = "INSERT INTO TransactionRecord (payer_student_id, payee_student_id, amount, transaction_time) VALUES (?, ?, ?, ?)";
         jdbcTemplate.update(sql, payerId, payeeId, amount, LocalDateTime.now());
         return ResponseEntity.ok("转账成功");
-    }
-
-    public ResponseEntity<List<Map<String, Object>>> getEnrollments() {
-        String sql = "SELECT * FROM Enrollment";
-        List<Map<String, Object>> enrollments = jdbcTemplate.queryForList(sql);
+    }    public ResponseEntity<List<Map<String, Object>>> getEnrollments(String studentId) {
+        String sql = "SELECT e.*, c.course_name, c.credits, d.department_name " +
+                     "FROM Enrollment e " +
+                     "JOIN Course c ON e.course_id = c.course_id " +
+                     "JOIN Department d ON c.offering_department_id = d.department_id " +
+                     "WHERE e.student_id = ?";
+        List<Map<String, Object>> enrollments = jdbcTemplate.queryForList(sql, studentId);
         return ResponseEntity.ok(enrollments);
     }
 
-    public ResponseEntity<List<Map<String, Object>>> getFriendships() {
-        String sql = "SELECT * FROM Friendship";
-        List<Map<String, Object>> friendships = jdbcTemplate.queryForList(sql);
+    public ResponseEntity<List<Map<String, Object>>> getFriendships(String studentId) {
+        String sql = "SELECT f.*, s.name as friend_name " +
+                     "FROM Friendship f " +
+                     "JOIN Student s ON (f.student2_id = s.student_id AND f.student1_id = ?) " +
+                     "OR (f.student1_id = s.student_id AND f.student2_id = ?) " +
+                     "WHERE f.student1_id = ? OR f.student2_id = ?";
+        List<Map<String, Object>> friendships = jdbcTemplate.queryForList(sql, studentId, studentId, studentId, studentId);
         return ResponseEntity.ok(friendships);
     }
 
-    public ResponseEntity<List<Map<String, Object>>> getMessages() {
-        String sql = "SELECT * FROM Message";
-        List<Map<String, Object>> messages = jdbcTemplate.queryForList(sql);
+    public ResponseEntity<List<Map<String, Object>>> getMessages(String studentId) {
+        String sql = "SELECT m.*, " +
+                     "sender.name as sender_name, " +
+                     "receiver.name as receiver_name " +
+                     "FROM Message m " +
+                     "JOIN Student sender ON m.sender_student_id = sender.student_id " +
+                     "JOIN Student receiver ON m.receiver_student_id = receiver.student_id " +
+                     "WHERE m.sender_student_id = ? OR m.receiver_student_id = ? " +
+                     "ORDER BY m.sent_time DESC";
+        List<Map<String, Object>> messages = jdbcTemplate.queryForList(sql, studentId, studentId);
         return ResponseEntity.ok(messages);
     }
 
-    public ResponseEntity<List<Map<String, Object>>> getTransactions() {
-        String sql = "SELECT * FROM TransactionRecord";
-        List<Map<String, Object>> transactions = jdbcTemplate.queryForList(sql);
+    public ResponseEntity<List<Map<String, Object>>> getTransactions(String studentId) {
+        String sql = "SELECT t.*, " +
+                     "payer.name as payer_name, " +
+                     "payee.name as payee_name " +
+                     "FROM TransactionRecord t " +
+                     "JOIN Student payer ON t.payer_student_id = payer.student_id " +
+                     "JOIN Student payee ON t.payee_student_id = payee.student_id " +
+                     "WHERE t.payer_student_id = ? OR t.payee_student_id = ? " +
+                     "ORDER BY t.transaction_time DESC";
+        List<Map<String, Object>> transactions = jdbcTemplate.queryForList(sql, studentId, studentId);
         return ResponseEntity.ok(transactions);
     }
 } 
